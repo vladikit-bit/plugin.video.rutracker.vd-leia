@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmc
 import os, sys
+from compat import redact
 
 __id_plugin__ = (
     sys.argv[0].replace("plugin://", "").replace("/", "")
@@ -25,7 +26,7 @@ def _encode(s):
         return s
 
 
-def message(title: str, msg: str, times=5000, icon=None):
+def message(title, msg, times=5000, icon=None):
     if icon is None:
         icon = xbmc.getInfoLabel("System.AddonIcon(%s)" % __id_plugin__)
     try:
@@ -53,7 +54,7 @@ def log(e, msgerror=None, logger=None, msgwarning=True):
         lines = []
         for var, val in sorted(var_list, key=lambda i: i[0]):
             if not (var.startswith("__") or var.endswith("__")):
-                lines.append("{0} = {1}".format(var, pformat(val)))
+                lines.append("{0} = {1}".format(var, pformat(redact(val))))
         return "\n".join(lines)
 
     # def logger(s):
@@ -64,7 +65,7 @@ def log(e, msgerror=None, logger=None, msgwarning=True):
         import inspect, traceback
 
         if logger is None:
-            logger = lambda msg: xbmc.log(_decode(msg), xbmc.LOGERROR)
+            logger = lambda msg: xbmc.log(_encode(_decode(msg)), xbmc.LOGERROR)
         frame_info = inspect.trace(5)[-1]
         logger("Unhandled exception detected!")
         logger("*** Start diagnostic info ***")
@@ -113,13 +114,13 @@ def log(e, msgerror=None, logger=None, msgwarning=True):
         else:
             try:
                 xbmc.log(
-                    "{0}:{1} {2}".format(
+                    _encode("{0}:{1} {2}".format(
                         __plugin_name__, _decode(msgerror), _decode(e)
-                    )
+                    ))
                 )
             except:
                 xbmc.log(
-                    "{0}:{1} {2}".format(
+                    _encode("{0}:{1} {2}".format(
                         __plugin_name__, _decode(msgerror), pformat(e)
-                    )
+                    ))
                 )

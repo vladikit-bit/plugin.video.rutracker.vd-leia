@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re, html.entities
+import re
+from xbmcup.compat import name2codepoint
 
 RE = {
     'space': re.compile(r'[ ]{2,}', re.U|re.S),
@@ -49,7 +50,7 @@ class Clear:
                 pass
         else:
             try:
-                text = chr(html.entities.name2codepoint[text[1:-1]])
+                text = chr(name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text

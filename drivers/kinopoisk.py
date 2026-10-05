@@ -4,7 +4,7 @@ import re
 import time
 import urllib
 
-from urllib.parse import quote_plus
+from xbmcup.compat import quote_plus
 
 from xbmcup.net import HTTP
 from xbmcup.cache import Cache
@@ -12,7 +12,6 @@ from xbmcup.html import Clear
 
 import xbmc
 
-from typing import Tuple
 from operator import itemgetter
 
 GENRE = {

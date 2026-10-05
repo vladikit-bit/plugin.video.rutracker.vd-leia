@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import pickle
+from xbmcup.compat import translate_path
 
 try:
     import xbmc, xbmcvfs # type: ignore
@@ -118,7 +119,7 @@ class Cache:
         cur.close()
 
     def _connect(self):
-        dirname = xbmcvfs.translatePath('special://temp')
+        dirname = translate_path('special://temp')
         for subdir in ('xbmcup', sys.argv[0].replace('plugin://', '').replace('/', '')):
             dirname = os.path.join(dirname, subdir)
             if not xbmcvfs.exists(dirname):

@@ -1,10 +1,8 @@
 # -*- encoding: utf-8 -*-
 import os, sys
-from urllib.parse import urljoin
-from urllib.request import pathname2url
+from xbmcup.compat import pathname2url, translate_path, urljoin
 import xbmc, xbmcgui, xbmcplugin
 from xbmcup.errors import log as _log
-from xbmcvfs import translatePath
 
 _IS_LIBTORRENT = False
 _IS_TORRENTSTREAM = False
@@ -22,7 +20,7 @@ class Torrent2http:
         try:
             sys.path.append(
                 os.path.join(
-                    translatePath("special://home/"),
+                    translate_path("special://home/"),
                     "addons",
                     "script.module.torrent2http",
                     "lib",
@@ -35,7 +33,7 @@ class Torrent2http:
 
             if DDir == "":
                 DDir = os.path.join(
-                    translatePath("special://temp/"), "xbmcup", "plugin.rutracker"
+                    translate_path("special://temp/"), "xbmcup", "plugin.rutracker"
                 )
             progressBar.create("Torrent2Http", "Запуск")
             # XBMC addon handle
@@ -138,12 +136,12 @@ class Torrent2http:
                         # getUploadRate = status.upload_rate / 1024 * 8
                         getSeeds = status.num_seeds
 
-                        line1 = f"Предварительная буферизация: {file_status.download / 1024 / 1024} MB"
+                        line1 = "Предварительная буферизация: {0} MB".format(file_status.download / 1024 / 1024)
                         line2 = "Сиды: " + str(getSeeds)
                         line3 = "Скорость: " + str(getDownloadRate)[:4] + " Mbit/s",
                         progressBar.update(
                             100 * file_status.download / pre_buffer_bytes,
-                            f'{line1}\n{line2}\n{line3}'
+                            "%s\n%s\n%s" % (line1, line2, line3)
                         )  #
 
                     elif status.state in [State.FINISHED, State.SEEDING]:

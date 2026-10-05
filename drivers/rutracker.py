@@ -2,7 +2,6 @@
 
 import re
 # import cookielib
-from typing import Any, Dict, Optional
 import urllib
 import threading as thr
 
@@ -11,7 +10,20 @@ from xbmcup.net import HTTP
 from xbmcup.cache import Cache
 from xbmcup.html import Clear
 
-from urllib.parse import urlparse, urlunparse, urljoin, urlsplit, urlencode, quote, unquote, quote_plus, unquote_plus, urldefrag
+from xbmcup.compat import (
+    Cookie,
+    MozillaCookieJar,
+    quote,
+    quote_plus,
+    unquote,
+    unquote_plus,
+    urlencode,
+    urldefrag,
+    urljoin,
+    urlparse,
+    urlsplit,
+    urlunparse,
+)
 
 import xbmc
 import xbmcgui
@@ -111,7 +123,7 @@ class RuTracker:
             return True
         return False
 
-    def get(self, id=None, page=1) -> Dict[str, Any]:
+    def get(self, id=None, page=1):
         """
             Получение списка директорий и раздач
 
@@ -200,7 +212,7 @@ class RuTracker:
 
             return {'pages': pages, 'data': folder}
 
-    def search(self, search: str, folder=None, index=None, ignore=None, search_id=None, page=None, days=None, seeders=None, downloads=None):
+    def search(self, search, folder=None, index=None, ignore=None, search_id=None, page=None, days=None, seeders=None, downloads=None):
         """
             Поиск по РуТрекеру
 
@@ -1026,8 +1038,6 @@ class RuTracker:
 
 
 class RuTrackerHTTP:
-    captcha_code: Optional[str]
-
     def __init__(self):
         self.setting = Setting()
         self.domain = self.setting['rutracker_domain']
@@ -1097,7 +1107,6 @@ class RuTrackerHTTP:
             return None
 
         # хакаем куки
-        from http.cookiejar import MozillaCookieJar, Cookie # fast
         cookies = MozillaCookieJar()
         cookies.load(self.http.request.cookies)
         cookies.set_cookie(
@@ -1234,7 +1243,7 @@ class RuTrackerHTTP:
         win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
 
         # width = 120px, height = 72px
-        x: int = int(win.getWidth() / 2 - 120 / 2)
+        x = int(win.getWidth() / 2 - 120 / 2)
         image = xbmcgui.ControlImage(x, 20, 120, 72, filename)
         win.addControl(image)
         k = xbmc.Keyboard('', 'Введите код капчи ( Enter captcha code )')

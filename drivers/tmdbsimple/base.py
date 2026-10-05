@@ -14,7 +14,7 @@ Created by Celia Oakley on 2013-10-31.
 import json
 import time
 try:  # only for 14 kodi
-        import urlquick
+        from . import urlquick
 except Exception as e:
         from xbmcup.errors import log
         log(e,'urlquick import error')
@@ -36,10 +36,10 @@ class TMDB(object):
         self.base_uri = 'https://api.themoviedb.org'
         self.base_uri += '/{version}'.format(version=API_VERSION)
 
-    def _get_path(self, key: str) -> str:
+    def _get_path(self, key):
         return self.BASE_PATH + self.URLS[key]
 
-    def _get_id_path(self, key: str) -> str:
+    def _get_id_path(self, key):
         return self._get_path(key).format(id=self.id) # type: ignore
 
     def _get_guest_session_id_path(self, key):
@@ -120,4 +120,3 @@ class TMDB(object):
             for key in response.keys():
                 if not hasattr(self, key) or not callable(getattr(self, key)):
                     setattr(self, key, response[key])
-

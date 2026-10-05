@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from typing import Any
 import urllib
 import time
 from . import tmdbsimple as TmDbS
@@ -8,7 +7,7 @@ from xbmcup.cache import Cache
 from xbmcup import errors
 
 #tmdbs.API_KEY = 'f090bb54758cabf231fb605d3e3e0468'
-from urllib.parse import quote_plus
+from xbmcup.compat import quote_plus
 
 class TmDb:
     def __init__(self):
@@ -186,7 +185,7 @@ class TmDb:
         if name == u'':
             timeout= 14*24*60*60 #
             return timeout, None
-        search: Any = self.tmdbs.Search()
+        search = self.tmdbs.Search()
         response = search.multi(query=name, language='ru', include_adult=True)
         if year: year = int(year)
         if search.results:
@@ -475,7 +474,7 @@ class TmDb:
         if name == u'':
                         timeout= 14*24*60*60 #
                         return timeout, None
-        search: Any = self.tmdbs.Search()
+        search = self.tmdbs.Search()
         if year:
                 response = search.movie(query=name, year=year, language='ru', include_adult=True)
         else:

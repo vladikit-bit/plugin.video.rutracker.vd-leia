@@ -6,7 +6,11 @@ from drivers.rutracker import RuTracker
 class AddTorrserverBase(Handler):
 	def handle(self):
 		self.show_busy()
-		from xbmcup import torrserver
+		try:
+			from xbmcup import torrserver
+		except ImportError:
+			xbmcgui.Dialog().ok(self.nameaddon, self.lang[30014])
+			return True
 		self.rutracker = RuTracker()
 		data = self.rutracker.download(self.argv['id'])
 		if not data:

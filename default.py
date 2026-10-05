@@ -11,9 +11,7 @@ import time
 import threading as thr
 import gc
 
-from urllib.parse import parse_qs, quote_plus, urlencode
-
-from typing import List, Optional, Dict, Any, Tuple, Union
+from xbmcup.compat import HTTPConnection, parse_qs, quote_plus, translate_path, urlencode
 
 from sqlite3 import dbapi2 as sqlite
 
@@ -36,7 +34,7 @@ file = open
 _setting_ = AppSetting()
 
 
-def mkStr(s1: str, s2: str, s3="") -> str:
+def mkStr(s1, s2, s3=""):
     if s2 and s3:
         return s1 + "\n" + s2 + "\n" + s3
     if s2:
@@ -235,8 +233,6 @@ CONTENT = {
 
 
 def GetProxyList():
-    from http.client import HTTPConnection
-
     conn = HTTPConnection("antizapret.prostovpn.org")
     conn.request(
         "GET",
@@ -370,7 +366,7 @@ MPAA = ("G", "PG", "PG-13", "R", "NC-17", "C", "GP")
 
 
 class TrailerParser:
-    def __init__(self) -> None:
+    def __init__(self):
         self.lang = Lang()
 
     def trailer_parser(self, trailers):
@@ -2269,20 +2265,20 @@ class MenuKinopoisk(Handler):
 
 class RutrackerBase(Handler, Scrapers):
     def __init__(self, gsetting=None, link=None, argv=None):
-        super().__init__(gsetting, link, argv)
+        Handler.__init__(self, gsetting, link, argv)
         self._rutracker = None
 
     @property
-    def rutracker(self) -> RuTracker:
+    def rutracker(self):
         if not self._rutracker:
             self._rutracker = RuTracker()
         return self._rutracker
 
     def render_rutracker(
         self,
-        is_search: bool,
-        folder: Optional[str],
-        data: Union[Dict[str, Any], int, None],
+        is_search,
+        folder,
+        data,
         is_favorite=False,
         is_united_search=False,
     ):
@@ -3325,8 +3321,6 @@ class FavoritesDel(Handler):
 
 
 class KinopoiskBase(Handler, TrailerParser):
-    kinopoisk: KinoPoisk
-
     def render_kinopoisk(self, data):
         if data is None:
             lang = self.lang[30001].split("|")
@@ -3802,7 +3796,7 @@ class Bookmark(Handler, TrailerParser):
         tmdb = TmDb()
         kinopoisk = KinoPoisk()
 
-        movie: Any = {}
+        movie = {}
 
         def zakview(type="movie", year=True, razd=True):
             # открыть раздачу сразу
@@ -3909,7 +3903,7 @@ class Bookmark(Handler, TrailerParser):
 
                 # общий для всех popup (Info)
                 # popup = [(Link('info'), self.lang[40001])]
-                popup: List[Tuple] = [(self.p_info, self.lang[40001])]
+                popup = [(self.p_info, self.lang[40001])]
 
                 if d["scrapper"] == "tvdb":
 
@@ -4093,7 +4087,7 @@ class TorrentBase(Handler):
             return magnet
         xbmcgui.Dialog().ok("RuTracker", *self.lang[30001].split("|"))
 
-    def get_dirname(self, prefix) -> Tuple[bool, Optional[str]]:
+    def get_dirname(self, prefix):
         dirname = self.setting[prefix + "_dir"]
         if dirname and self.setting[prefix + "_save"] == "0":
             dirname = None
@@ -4135,12 +4129,12 @@ class TorrentBase(Handler):
                 self._clear(filename)
                 os.rmdir(filename)
 
-    def metainfo(self, torrent_data: bytes) -> Dict[bytes, Any]:
+    def metainfo(self, torrent_data):
         from xbmcup.bencodepy import bdecode
 
         return bdecode(torrent_data)
 
-    def infohash(self, torrent_data: bytes) -> str:
+    def infohash(self, torrent_data):
         from xbmcup.bencodepy import bencode
         import hashlib
 
@@ -4471,15 +4465,15 @@ class Stream(TorrentBase):
         from xbmcup.bencodepy import bdecode, BencodeDecodeError
 
         try:
-            info: Dict[bytes, Any] = bdecode(torrent)[b"info"]
+            info = bdecode(torrent)[b"info"]
 
         except BencodeDecodeError as e:
-            _log(f"Failed to decode torrent data: {e}")
-            _log(f"Torrent data starts with: {torrent[:50] if torrent else 'None'}")
+            _log("Failed to decode torrent data: %s" % e)
+            _log("Torrent data starts with: %s" % (torrent[:50] if torrent else "None"))
             return []  # Return empty list when torrent data is invalid
 
         else:
-            def _decode(s) -> str:
+            def _decode(s):
                 try:
                     return s.decode("utf8")
                 except:
@@ -4489,16 +4483,16 @@ class Stream(TorrentBase):
                         return s
 
             if b"files" in info:
-                def get_path(parts: List[bytes]) -> List[str]:
+                def get_path(parts):
                     strs = [ _decode(part) for part in parts ]
                     return strs
 
-                def full_name(parts: List[bytes]) -> str:
+                def full_name(parts):
                     strs = [ _decode(part) for part in parts ]
                     return os.sep.join(strs)
 
                 if pathfile:
-                    def file_item(i: int, x: Dict[bytes, Any]):
+                    def file_item(i, x):
                         return dict(
                             id=i,
                             fullname=full_name(x[b"path"]),
@@ -4510,7 +4504,7 @@ class Stream(TorrentBase):
                     files = [ file_item(i, x) for i, x in enumerate(info[b"files"]) ]
 
                 else:
-                    def file_item2(i: int, x: Dict[bytes, Any]):
+                    def file_item2(i, x):
                         return dict(
                             id=i,
                             fullname=full_name(x[b"path"]),
@@ -4602,7 +4596,7 @@ class Stream(TorrentBase):
 
         # проигрываем файл
         if "file_id" in self.argv:
-            url_torrent = xbmcvfs.translatePath(
+            url_torrent = translate_path(
                 "special://temp/plugin_rutracker_cache.torrent"
             )
             play = Torrent2http().play(
@@ -4620,7 +4614,7 @@ class Stream(TorrentBase):
 
             # кэшируем торрент
             file(
-                xbmcvfs.translatePath("special://temp/plugin_rutracker_cache.torrent"),
+                translate_path("special://temp/plugin_rutracker_cache.torrent"),
                 "wb",
             ).write(torrent)
 
@@ -4672,11 +4666,16 @@ class Stream(TorrentBase):
     def _torrserver(self):
         # проигрываем файл
         if "file_id" in self.argv:
-            url_torrent = xbmcvfs.translatePath(
+            url_torrent = translate_path(
                 "special://temp/plugin_rutracker_cache.torrent"
             )
             global torrserve_stream
-            import torrserve_stream
+            try:
+                import torrserve_stream
+            except ImportError as e:
+                _log(e, "torrserve_stream import error")
+                xbmcgui.Dialog().ok("RuTracker", self.lang[30014])
+                return True
 
             player = torrserve_stream.Player(
                 path=url_torrent, index=int(self.argv["file_id"])
@@ -4691,7 +4690,7 @@ class Stream(TorrentBase):
 
             # кэшируем торрент
             file(
-                xbmcvfs.translatePath("special://temp/plugin_rutracker_cache.torrent"),
+                translate_path("special://temp/plugin_rutracker_cache.torrent"),
                 "wb",
             ).write(torrent)
 
@@ -4744,7 +4743,7 @@ class Stream(TorrentBase):
     def _torrenter(self):
         # проигрываем файл
         if "file_id" in self.argv:
-            url_torrent = xbmcvfs.translatePath(
+            url_torrent = translate_path(
                 "special://temp/plugin_rutracker_cache.torrent"
             )
             # это тут не работает...
@@ -4768,7 +4767,7 @@ class Stream(TorrentBase):
 
             # кэшируем торрент
             file(
-                xbmcvfs.translatePath("special://temp/plugin_rutracker_cache.torrent"),
+                translate_path("special://temp/plugin_rutracker_cache.torrent"),
                 "wb",
             ).write(torrent)
 
@@ -4822,7 +4821,7 @@ class Stream(TorrentBase):
         if "file_id" in self.argv:
             # magnet_link = self.get_magnet()
             # magnet_link = magnet_link+'&tr=http://bt.t-ru.org/ann?magnet'
-            url_torrent = xbmcvfs.translatePath(
+            url_torrent = translate_path(
                 "special://temp/plugin_rutracker_tam_cache.torrent"
             )
             if self.setting["tam_magnet"] == "true":
@@ -4849,7 +4848,7 @@ class Stream(TorrentBase):
 
             # кэшируем торрент
             file(
-                xbmcvfs.translatePath(
+                translate_path(
                     "special://temp/plugin_rutracker_tam_cache.torrent"
                 ),
                 "wb",
@@ -4903,7 +4902,7 @@ class Stream(TorrentBase):
     def _elementum(self):
         # проигрываем файл
         if "file_id" in self.argv:
-            url_torrent = xbmcvfs.translatePath(
+            url_torrent = translate_path(
                 "special://temp/plugin_rutracker_cache.torrent"
             )
             # это тут не работает...
@@ -4936,7 +4935,7 @@ class Stream(TorrentBase):
 
             # кэшируем торрент
             file(
-                xbmcvfs.translatePath("special://temp/plugin_rutracker_cache.torrent"),
+                translate_path("special://temp/plugin_rutracker_cache.torrent"),
                 "wb",
             ).write(torrent)
 
@@ -5452,7 +5451,7 @@ class FlushCache(Handler):
 #
 class ClearCookies(Handler):
     def handle(self):
-        dirname = xbmcvfs.translatePath("special://temp")
+        dirname = translate_path("special://temp")
         for subdir in ("xbmcup", sys.argv[0].replace("plugin://", "").replace("/", "")):
             dirname = os.path.join(dirname, subdir)
             if not xbmcvfs.exists(dirname):
@@ -5890,7 +5889,7 @@ if __name__ == "__main__":
     except BaseException as e:
         _log(e)
 
-    _log(f"RuTracker call: {sys.argv[0]}{sys.argv[2]}")
+    _log("RuTracker call: %s%s" % (sys.argv[0], sys.argv[2]))
 
     main()
 

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.rutracker.vd" name="RuTracker" version="0.30.5+matrix" provider-name="HAL9000, -=Vd=-">
+<addon id="plugin.video.rutracker.vd" name="RuTracker" version="0.30.5+leia" provider-name="HAL9000, -=Vd=-">
   <requires>
-    <import addon="xbmc.python" version="3.0.0" />
+    <import addon="xbmc.python" version="2.26.0" />
     <import addon="script.module.torrserver" optional="true" />
     <import addon="plugin.video.elementum" optional="true" />
     <import addon="plugin.video.tam" optional="true" />
-	<import addon="script.module.requests" />
+	<import addon="script.module.requests" optional="true" />
   </requires>
   <extension point="xbmc.python.pluginsource" provides="video" library="default.py">
     <provides>video</provides>

@@ -6,6 +6,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
+from xbmcup.compat import translate_path
 
 addon = xbmcaddon.Addon()
 
@@ -15,7 +16,7 @@ def fs_dec(path):
     return path.decode(sys_enc).encode('utf-8')
 
 def fs_enc(path):
-	path=xbmc.translatePath(path)
+	path=translate_path(path)
 	sys_enc = sys.getfilesystemencoding() if sys.getfilesystemencoding() else 'utf-8'
 	try:path2=path.decode('utf-8')
 	except: pass
@@ -110,7 +111,7 @@ class xPlayer(xbmc.Player):
 	@staticmethod
 	def get_skin_resolution():
 		import xml.etree.ElementTree as Et
-		skin_path = fs_enc(xbmc.translatePath('special://skin/'))
+		skin_path = fs_enc(translate_path('special://skin/'))
 		tree = Et.parse(os.path.join(skin_path, 'addon.xml'))
 		res = tree.findall('./extension/res')[0]
 		return int(res.attrib['width']), int(res.attrib['height'])

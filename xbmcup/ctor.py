@@ -1,10 +1,8 @@
 # -*- encoding: utf-8 -*-
-from typing import Any
 import os, re, base64, urllib, json
 from .net import HTTP, HTTPRequest
 import xmlrpc2scgi
-from xmlrpc import client as xmlrpclib
-from urllib.parse import quote
+from xbmcup.compat import quote, xmlrpclib
 
 # ################################
 #
@@ -376,7 +374,7 @@ class qBittorrent:
         self.cookie = self.get_auth()
 
     def list(self):
-        obj: Any = self.action('/query/torrents')
+        obj = self.action('/query/torrents')
 
         if obj is None:
             return None
@@ -398,13 +396,13 @@ class qBittorrent:
                     'leech': r['num_leechs'],
                     'dir': r['save_path']
                 }
-                flist: Any = self.action('/query/propertiesFiles/'+r['hash'])
+                flist = self.action('/query/propertiesFiles/'+r['hash'])
                 if len(flist) > 1: add['dir'] = os.path.join(r['save_path'], r['name'])
                 res.append(add)
         return res
 
     def listdirs(self):
-        obj: Any = self.action('/query/preferences')
+        obj = self.action('/query/preferences')
         if obj is None:
             return None
 
@@ -415,7 +413,7 @@ class qBittorrent:
         return res, res
 
     def listfiles(self, id):
-        obj: Any = self.action('/query/propertiesFiles/'+id)
+        obj = self.action('/query/propertiesFiles/'+id)
         i = -1
         if obj is None:
             return None
@@ -425,7 +423,7 @@ class qBittorrent:
         if len(obj) == 1:
             strip_path = None
         else:
-            tlist: Any = self.list()
+            tlist = self.list()
             for t in tlist:
                 if t['id']==id:
                     strip_path = t['name']
@@ -461,7 +459,7 @@ class qBittorrent:
 
     def get_prio(self, id):
         res = []
-        obj: Any = self.action('/query/propertiesFiles/'+id)
+        obj = self.action('/query/propertiesFiles/'+id)
 
         if obj is None:
             return None
@@ -491,7 +489,7 @@ class qBittorrent:
             return True
 
     def setprio(self, id, ind):
-        obj: Any = self.action('/query/propertiesFiles/'+id)
+        obj = self.action('/query/propertiesFiles/'+id)
 
         if not obj or ind == None:
             return None
@@ -724,7 +722,7 @@ class Deluge:
 
     def setprio(self, id, ind):
         i = -1
-        prios: Any = self.get_prio(id)
+        prios = self.get_prio(id)
 
         for p in prios:
             i = i + 1
@@ -741,7 +739,7 @@ class Deluge:
         return True
 
     def setprio_simple(self, id, prio, ind):
-        prios: Any = self.get_prio(id)
+        prios = self.get_prio(id)
 
         if ind != None:
             prios.pop(int(ind))
@@ -756,7 +754,7 @@ class Deluge:
 
     def setprio_simple_multi(self, menu):
         id = menu[0][0]
-        prios: Any = self.get_prio(id)
+        prios = self.get_prio(id)
 
         for hash, action, ind in menu:
             prios.pop(int(ind))

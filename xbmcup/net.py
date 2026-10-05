@@ -6,11 +6,25 @@ import sys
 import time
 import re
 import urllib
-from urllib.request import build_opener, install_opener, HTTPCookieProcessor, HTTPHandler, HTTPRedirectHandler, BaseHandler, ProxyHandler, ProxyBasicAuthHandler, HTTPError, Request, urlopen
-from urllib.parse import urlencode, quote, unquote
-from typing import Any, Dict, List, Optional, Tuple
-from http.cookiejar import MozillaCookieJar
-from http.client import HTTPMessage
+from compat import (
+    build_opener,
+    install_opener,
+    b64encode_text,
+    HTTPCookieProcessor,
+    HTTPError,
+    HTTPHandler,
+    HTTPRedirectHandler,
+    MozillaCookieJar,
+    ProxyBasicAuthHandler,
+    ProxyHandler,
+    quote,
+    redact,
+    Request,
+    translate_path,
+    unquote,
+    urlencode,
+    urlopen,
+)
 
 # import cookielib  #  перенесено для ускорения интерфейса Kodi в дополнении
 # import base64
@@ -79,7 +93,7 @@ RE = {
 
 class HTTP:
     def __init__(self):
-        self._dirname = xbmcvfs.translatePath('special://temp')
+        self._dirname = translate_path('special://temp')
         for subdir in ('xbmcup', sys.argv[0].replace('plugin://', '').replace('/', '')):
             self._dirname = os.path.join(self._dirname, subdir)
             if not xbmcvfs.exists(self._dirname):
@@ -94,13 +108,13 @@ class HTTP:
 
         self.response = HTTPResponse(self.request)
 
-        xbmc.log('XBMCup: HTTP: request: ' + str(self.request), xbmc.LOGDEBUG)
+        xbmc.log('XBMCup: HTTP: request: ' + str(redact(self.request)), xbmc.LOGDEBUG
 
         try:
             self._opener()
             self._fetch()
         except Exception as e:
-            xbmc.log('XBMCup: HTTP: ' + str(e), xbmc.LOGERROR)
+            xbmc.log('XBMCup: HTTP: ' + str(e), xbmc.LOGERROR
             if isinstance(e, HTTPError):
                 self.response.code = e.code
             elif isinstance(e, ImportError): raise
@@ -127,14 +141,14 @@ class HTTP:
 
         self.response.time = time.time() - self.response.time
 
-        xbmc.log('XBMCup: HTTP: response: ' + str(self.response), xbmc.LOGDEBUG)
+        xbmc.log('XBMCup: HTTP: response: ' + str(redact(self.response)), xbmc.LOGDEBUG
 
         return self.response
 
 
     def _opener(self):
 
-        build: List[BaseHandler] = [HTTPHandler()]
+        build = [HTTPHandler()]
 
         if self.request.redirect:
             build.append(HTTPRedirectHandler())
@@ -189,10 +203,9 @@ class HTTP:
             req.add_header('Content-length', str(len(upload)))
 
         if self.request.auth_username and self.request.auth_password:
-            import base64 # fast
-            auth_str: str = base64.encodebytes(
-                f'{self.request.auth_username}:{self.request.auth_password}'.encode()
-            ).decode()
+            auth_str = b64encode_text(
+                "%s:%s" % (self.request.auth_username, self.request.auth_password)
+            )
             req.add_header('Authorization', 'Basic %s' % auth_str)
                 #':'.join([self.request.auth_username, self.request.auth_password])).strip().encode('utf-8'))
 
@@ -248,7 +261,7 @@ class HTTP:
         self.response.filename = self.request.download
 
 
-    def _upload(self, upload, params) -> Tuple[Any, Any]:
+    def _upload(self, upload, params):
         res = []
         from email.generator import Generator # fast
         choose_boundary = Generator._make_boundary  # type: ignore
@@ -283,7 +296,7 @@ class HTTP:
         return boundary, '\r\n'.join(result)
 
 
-    def _headers(self, raw: HTTPMessage):
+    def _headers(self, raw):
         headers = {}
         for tag, value in raw.items():
             if tag and value:
@@ -377,11 +390,6 @@ class HTTPRequest:
 
 
 class HTTPResponse:
-    code: Optional[int]
-    error: Optional[Exception]
-    filename: Optional[str]
-    body: Optional[bytes]
-
     def __init__(self, request):
         self.request = request
         self.code = None
@@ -391,7 +399,7 @@ class HTTPResponse:
         self.filename = None
         self.time = time.time()
 
-    def body_decode(self, encoding: str = 'utf-8', errors: str = "strict"):
+    def body_decode(self, encoding='utf-8', errors="strict"):
         return self.body.decode(encoding, errors) if self.body else ''
 
     def __repr__(self):

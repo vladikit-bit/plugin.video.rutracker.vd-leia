@@ -9,9 +9,7 @@ import urllib
 import json
 
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, xbmcvfs
-from urllib.parse import urlencode, quote_plus, unquote_plus, parse_qsl
-from typing import Dict, Any
-
+from compat import parse_qsl, quote_plus, redact, translate_path, unquote_plus, urlencode
 MODE = {
     'list':  50,
     'full':  51,
@@ -25,9 +23,9 @@ class UrlLink:
         self.url = url
 
 class Link(UrlLink):
-    def __init__(self, route: str, argv=None, container=False, container_replace=False, ver=1):
+    def __init__(self, route, argv=None, container=False, container_replace=False, ver=1):
         # if str(type(route)) == "<type 'classobj'>": route = route.__name__.lower()
-        app: Dict[str, Any] = {'route': route}
+        app = {'route': route}
         if argv is not None:
             if ver == 3 and isinstance(argv, dict):
                 for key in argv:
@@ -184,14 +182,14 @@ class Handler:
         else:
             xbmc.executebuiltin('Container.Update(%s)' % link.url)
 
-    def message(self, title: str, msg: str, times=5000, icon=None):
+    def message(self, title, msg, times=5000, icon=None):
         try:
             xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "%s")' % (title, msg, times, icon))
         except Exception as e:
-            xbmc.log('XBMCup: Handler: ' + str(e), xbmc.LOGERROR)
+            xbmc.log('XBMCup: Handler: ' + str(e), xbmc.LOGERROR
 
     def path(self, *path):
-        dirname = [xbmcvfs.translatePath('special://temp'), 'xbmcup', self.plugin, 'data']
+        dirname = [translate_path('special://temp'), 'xbmcup', self.plugin, 'data']
         if path:
             dirname.extend(path)
         return os.path.join(*dirname)
@@ -210,7 +208,7 @@ class Handler:
         self.popupend = []
         self.popupend.extend(self.popup)
 
-    def popupadd(self, link: str, text: str, resetpopup=False, start=False):
+    def popupadd(self, link, text, resetpopup=False, start=False):
         if self.popupend is None or resetpopup:
             self.popupreset()
         if self.popupend is None:
@@ -274,7 +272,7 @@ class ThisIsNotClassError(BaseException):
 
 class Plugin:
     def __init__(self, *handler):
-        dirname = xbmcvfs.translatePath('special://temp')
+        dirname = translate_path('special://temp')
         for subdir in ('xbmcup', sys.argv[0].replace('plugin://', '').replace('/', ''), 'data'):
             dirname = os.path.join(dirname, subdir)
             if not xbmcvfs.exists(dirname):
@@ -297,7 +295,7 @@ class Plugin:
 
     def radd(self, route=None):
         def wrap(cls, route=route):
-            if str(type(cls)) != "<type 'classobj'>": raise ThisIsNotClassError()
+            if not isinstance(cls, type): raise ThisIsNotClassError()
             if route is None: route = cls.__name__.lower()
             if route == '/' or route == 'menu': self.route(cls)
             else: self.route(route, cls)
@@ -305,13 +303,13 @@ class Plugin:
         return wrap
 
     def rcls(self, handler):
-        if str(type(handler)) == "<type 'classobj'>":
+        if isinstance(handler, type):
                 route = handler.__name__.lower()
                 self.route(route, handler)
         else: raise ThisIsNotClassError()
 
     def run(self, **kwarg):
-        xbmc.log('XBMCup: Plugin: sys.argv: ' + str(sys.argv), xbmc.LOGDEBUG)
+        xbmc.log('XBMCup: Plugin: sys.argv: ' + str(redact(sys.argv)), xbmc.LOGDEBUG
 
         if len(sys.argv) > 2 and sys.argv[2]:
             if sys.argv[2][1] == '%':
@@ -353,7 +351,7 @@ class Plugin:
             'container_replace': link_t.get('container_replace', False)
         }
 
-        xbmc.log('XBMCup: Plugin: input param: ' + str(link), xbmc.LOGDEBUG)
+        xbmc.log('XBMCup: Plugin: input param: ' + str(redact(link)), xbmc.LOGDEBUG
 
         gsetting = {}
 
@@ -383,7 +381,7 @@ class Plugin:
             else:
                 handler = [x[1] for x in self._route if x[0] == link['route']]
                 if not handler:
-                    xbmc.log('XBMCup: Plugin: handler not found: (sys.argv: ' + str(sys.argv) + ')', xbmc.LOGERROR)
+                    xbmc.log('XBMCup: Plugin: handler not found: (sys.argv: ' + str(sys.argv) + ')', xbmc.LOGERROR
                 else:
                     if link['container']:
                       if not xbmc.getCondVisibility('Window.IsMedia'):
@@ -401,7 +399,7 @@ class Plugin:
                 app.render()
 
         except Exception as e:
-            xbmc.log('XBMCup: Plugin: error exec handler: ' + str(e) + '(sys.argv: ' + str(sys.argv) + ')', xbmc.LOGERROR)
+            xbmc.log('XBMCup: Plugin: error exec handler: ' + str(e) + '(sys.argv: ' + str(sys.argv) + ')', xbmc.LOGERROR
             try:
                 try:
                     if app:

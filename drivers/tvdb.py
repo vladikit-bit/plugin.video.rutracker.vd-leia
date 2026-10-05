@@ -11,7 +11,7 @@ from xbmcup.net import HTTP
 from xbmcup.cache import Cache
 from xbmcup.html import Clear
 
-from urllib.parse import quote_plus
+from xbmcup.compat import quote_plus
 file = open
 
 #import xbmc

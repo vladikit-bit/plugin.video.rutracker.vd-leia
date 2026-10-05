@@ -11,7 +11,6 @@ from xbmcup.app import Handler, UrlLink, Link, Lang
 from xbmcup.errors import _decode
 
 import xbmc, xbmcgui, xbmcplugin, xbmcvfs
-from typing import Tuple, List
 
 #
 #
@@ -124,7 +123,7 @@ class History(Handler):
             for d in data:
 
                 # поиск по имени
-                popup: List[Tuple] = [(
+                popup = [(
                     Link('rutracker-search', {'content': d['content'], 'textsearch': d['id']}, True), self.lang[30114]
                 )]
 
